@@ -1,0 +1,113 @@
+org 0000h
+ljmp start
+org 0100h
+
+delay:
+	loop_delay:
+		push 7
+		mov R7,#114
+		del_1ms:
+				nop
+				nop
+				nop
+				nop
+				nop
+				nop				
+				djnz R7,del_1ms
+				nop
+				pop 7
+		ret	
+		
+start:
+	mov R1,#00000001b	
+	program1:		
+		mov DPTR,#0F030h
+		mov A,#00000010b ;bit dla ESC
+		movx @DPTR,A		
+		JB P3.5, program2
+		CLR A		
+		mov DPTR,#0F030h
+		mov A,#01111111b ;wybranie kostki
+		movx @DPTR,A		
+		mov DPTR,#0F038h 
+		mov A,R1	;wybranie segmentu na kostce
+		movx @DPTR,A		
+		clr P1.6 ;zapalenie segmentu
+		loop1:
+			mov DPTR,#0F030h
+			mov A,#00000010b ;bit dla ESC
+			movx @DPTR,A			
+			JB P3.5,program2
+			CLR A			
+			mov DPTR,#0F030h
+			mov A,#01111111b ;wybranie kostki
+			movx @DPTR,A			
+			mov DPTR,#0F038h 
+			mov A,R1	;wybranie segmentu na kostce
+			movx @DPTR,A
+			mov R2,#200
+			petla:
+			lcall delay			
+			djnz R2,petla
+			mov A,R1
+			RL A
+			mov R1,A
+			movx @DPTR,A
+			clr P1.6
+			ljmp loop1			
+			ljmp program1
+	wylacz:
+		mov DPTR,#0F030h
+		mov A,#00000010b ;bit dla ESC
+		movx @DPTR,A		
+		JB P3.5, start
+		CLR A
+		mov DPTR,#0
+		mov DPTR,#0F030h
+		mov A,#01111111b
+		movx @DPTR,A		
+		mov DPTR,#0F038h
+		mov A,#00111111b
+		setb P1.6		
+		ljmp wylacz
+	
+	program2:		
+		mov R2,#200
+		mov DPTR,#0F030h
+		mov A,#00000010b ;bit dla ESC
+		movx @DPTR,A		
+		JB P3.5, wylacz
+		CLR A		
+		mov DPTR,#0F030h
+		mov A,#01111111b ;wybranie kostki
+		movx @DPTR,A		
+		mov DPTR,#0F038h 
+		mov A,11111111b	;wybranie segmentu
+		movx @DPTR,A		
+		clr P1.6 ;zapalenie segmentu		
+		loop2:			
+			mov DPTR,#0F030h
+			mov A,#00000010b ;bit dla ESC
+			movx @DPTR,A			
+			JB P3.5,wylacz			
+			mov DPTR,#0F030h
+			mov A,#01111111b ;wybranie kostki
+			movx @DPTR,A			
+			mov DPTR,#0F038h 
+			mov A,11111111b	;wybranie segmentu
+			movx @DPTR,A		
+			clr P1.6			
+			mov R2,#200
+			petla2:
+			lcall delay			
+			djnz R2,petla2
+			setb P1.6 ;zgaszenie segmentu			
+			mov R2,#200
+			petla3:
+			lcall delay			
+			djnz R2,petla3			
+			ljmp loop2
+	
+	stop:
+		ljmp stop
+		end
